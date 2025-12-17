@@ -1,5 +1,4 @@
-import de.example.kontoverwaltung.domain.model.Account
-import java.util.UUID
+import java.util.*
 
 interface AccountRepository {
     fun save(account: Account)

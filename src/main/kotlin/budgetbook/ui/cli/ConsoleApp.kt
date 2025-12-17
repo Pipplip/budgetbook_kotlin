@@ -1,5 +1,3 @@
-import de.example.kontoverwaltung.application.service.AccountService
-import de.example.kontoverwaltung.domain.model.Payment
 import java.math.BigDecimal
 
 class ConsoleApp(
