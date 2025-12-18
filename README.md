@@ -11,7 +11,7 @@ Kurz:
 - domain.repository kennt nur domain
 - domain.exception kennt nur domain
 - service kennt nur domain (+ repository-Interfaces)
-- infratructure kennt nur domain (+ repository-Interfaces)
+- infrastructure kennt nur domain (+ repository-Interfaces)
 - ui kennt nur Service
 - Main.kt kennt alles
 

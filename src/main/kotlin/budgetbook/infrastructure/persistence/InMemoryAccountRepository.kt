@@ -1,4 +1,5 @@
 import java.util.*
+import kotlin.collections.mutableMapOf
 
 class InMemoryAccountRepository : AccountRepository {
 
@@ -13,5 +14,9 @@ class InMemoryAccountRepository : AccountRepository {
 
     override fun delete(id: UUID) {
         accounts.remove(id)
+    }
+
+    override fun getAllAccounts(): MutableMap<UUID, Account> {
+        return accounts
     }
 }

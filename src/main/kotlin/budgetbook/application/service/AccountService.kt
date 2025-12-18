@@ -1,4 +1,6 @@
+import java.time.Month
 import java.util.*
+import kotlin.collections.mutableMapOf
 
 class AccountService(
     private val repository: AccountRepository
@@ -12,6 +14,10 @@ class AccountService(
 
     fun deleteAccount(accountId: UUID) {
         repository.delete(accountId)
+    }
+
+    fun getAllAccounts(): MutableMap<UUID, Account>{
+        return repository.getAllAccounts()
     }
 
     fun addPayment(accountId: UUID, payment: Payment) {
@@ -32,5 +38,9 @@ class AccountService(
 
     fun getBalance(accountId: UUID) =
         repository.findById(accountId)?.balance()
+            ?: throw AccountNotFoundException(accountId)
+
+    fun getBalanceForSpecificMonthYear(accountId: UUID, year: Int, month: Month) =
+        repository.findById(accountId)?.getBalanceForSpecificMonthYear(year, month)
             ?: throw AccountNotFoundException(accountId)
 }

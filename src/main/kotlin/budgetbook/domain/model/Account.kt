@@ -1,4 +1,5 @@
 import java.math.BigDecimal
+import java.time.Month
 import java.util.UUID
 
 class Account(
@@ -17,6 +18,11 @@ class Account(
 
     fun balance(): BigDecimal =
         payments.fold(BigDecimal.ZERO) { acc, p -> acc + p.amount }
+
+    fun getBalanceForSpecificMonthYear(year: Int, month: Month) : BigDecimal =
+        payments
+            .filter { it.date.year == year && it.date.month == month }
+            .sumOf { it.amount }
 
     fun payments(): List<Payment> =
         payments.toList()
