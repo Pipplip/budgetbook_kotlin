@@ -37,13 +37,14 @@ class ConsoleApp(
     }
 
     fun showMainMenu(): AppState {
+        println()
         println("==== Hauptmenü ====")
         println("1 - Account erstellen")
         println("2 - Account auswählen")
         println("3 - Beenden")
         print("Auswahl: ")
 
-        return when (readln()) {
+        return when (readln().trim()) {
             "1" -> AppState.AccountCreate
             "2" -> AppState.AccountSelection
             "3" -> AppState.Exit
@@ -55,66 +56,99 @@ class ConsoleApp(
     }
 
     fun showAccountSelection(): AppState {
+        println()
         println("==== Account auswählen ====")
 
         val accountsMap: MutableMap<UUID, Account> = service.getAllAccounts()
 
-        accountsMap.forEach { (id, account) ->
-            println("$id) ${account.owner}")
+        val accountToList = accountsMap.values.toList()
+
+        accountToList.forEachIndexed { index, account ->
+            println("${index + 1} - ${account.owner} id: ${account.id}")
         }
+
+//        accountsMap.entries.forEachIndexed { index, entry ->
+//            println("${index + 1} - ${entry.value.owner} id: ${entry.value.id}")
+//        }
+
+//        accountsMap.forEach { (id, account) ->
+//            println("$id - ${account.owner}")
+//        }
         println("0 - Zurück")
         print("Auswahl: ")
 
         val input = readln().trim()
 
         // Zurück
-        if (input == "0") {
+        if (input == "0") return AppState.MainMenu
+
+        val index = input.toIntOrNull()
+        if(index == null || index !in 1..accountToList.size){
+            println("Ungültige Eingabe.")
             return AppState.MainMenu
         }
 
-        // UUID parsen
-        val uuid = try {
-            UUID.fromString(input)
-        } catch (e: IllegalArgumentException) {
+        // UUID parsen und Account finden
+        val account = runCatching {
+            val selectedAccount = accountToList[index - 1]
+            UUID.fromString(selectedAccount.id.toString())
+        }.getOrElse {
             println("Ungültige UUID")
             return AppState.AccountSelection
-        }
-
-        // Account finden
-        val account = accountsMap[uuid]
-            ?: run {
+        }.let { uuid ->
+            accountsMap[uuid] ?: run {
                 println("Account nicht gefunden")
                 return AppState.AccountSelection
             }
+        }
 
-        return AppState.AccountMenu(account)
+    return AppState.AccountMenu(account)
+
+//        // UUID parsen
+//        val uuid = try {
+//            val selectedAccount = accountToList.get(input.toInt() - 1)
+//            UUID.fromString(selectedAccount.id.toString())
+//        } catch (e: IllegalArgumentException) {
+//            println("Ungültige UUID")
+//            return AppState.AccountSelection
+//        }
+//
+//        // Account finden
+//        val account = accountsMap[uuid]
+//            ?: run {
+//                println("Account nicht gefunden")
+//                return AppState.AccountSelection
+//            }
+//
+//        return AppState.AccountMenu(account)
     }
 
     fun showCreateAccount(): AppState {
+        println()
         println("==== Account erstellen ====")
         println("Name eingeben: ")
 
-        return AppState.MainMenu
+        val input = readln().trim()
 
-        // TODO
-//        return when (readLine()) {
-//            //AppState.AccountMenu(account)
-//
-//            else -> {
-//                println("Ungültige Eingabe")
-//                AppState.MainMenu
-//            }
-//        }
+        if(input.isEmpty()){
+            println("Ungültige Eingabe")
+            return AppState.MainMenu
+        }else{
+            val account = service.createAccount(input)
+            println("Konto erstellt: ${account.owner} - ${account.id}")
+            return AppState.AccountMenu(account)
+        }
     }
 
     fun showAccountMenu(account: Account): AppState {
+        println()
         println("==== Account: ${account.owner} ====")
         println("1) Zahlungen anzeigen")
         println("2) Zahlung hinzufügen")
         println("0) Zurück")
         print("Auswahl: ")
 
-        return when (readln()) {
+        return when (readln().trim()) {
             "1" -> {
                 println("Zahlungen anzeigen für ${account.owner}")
                 AppState.AccountMenu(account)
