@@ -2,6 +2,8 @@
 
 Clean Architecture / Hexagonal Architecture
 
+![kotlin_bb](kotlin_bb_b.jpg "architecture")
+
 Abhängigkeiten zeigen immer nach innen, d.h. 
 
 UI --> Service --> Domain <-- Infrastructure
