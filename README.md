@@ -17,6 +17,15 @@ Kurz:
 - ui kennt nur Service
 - Main.kt kennt alles
 
+## Build
+```shell
+.\gradlew.bat clean 
+.\gradlew.bat shadowJar
+
+cd build\libs
+java -jar .\budgetbook_kotlin-1.0-SNAPSHOT.jar
+```
+
 ## Service
 "Use cases" oder Application Layer genannt
 - Orchestriert die Fachlogik

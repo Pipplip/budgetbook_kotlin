@@ -1,8 +1,11 @@
 import java.math.BigDecimal
 import java.time.Month
 import java.util.UUID
+import kotlinx.serialization.Serializable
 
+@Serializable
 class Account(
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID = UUID.randomUUID(),
     val owner: String
 ) {
