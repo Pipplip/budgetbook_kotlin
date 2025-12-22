@@ -10,6 +10,6 @@ data class Payment(
     @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,
     @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate = LocalDate.now(),
+    val date: LocalDate,
     val description: String
 )
