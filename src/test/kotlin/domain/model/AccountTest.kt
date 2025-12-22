@@ -7,7 +7,7 @@ import java.util.UUID
 
 internal class AccountTest {
 
-    lateinit var account: Account
+    lateinit var account1: Account
     lateinit var accountId1: UUID
 
     lateinit var account2: Account
@@ -18,7 +18,7 @@ internal class AccountTest {
     @BeforeEach
     fun setUp() {
         accountId1 = UUID.randomUUID()
-        account = Account(accountId1, "Tester")
+        account1 = Account(accountId1, "Tester")
 
         accountId2 = UUID.randomUUID()
         account2 = Account(accountId2, "Tester_2")
@@ -28,31 +28,28 @@ internal class AccountTest {
 
     @Test
     fun jsonAccountSerialization_test() {
-        val json = Json.encodeToString(account)
+        val actualJson = Json.encodeToString(account1)
         // val obj = Json.decodeFromString<Data>("""{"a":42, "b": "str"}""")
 
-        val expected = """
+        val expectedJson  = """
             {
                 "id":"$accountId1",
                 "owner":"Tester"
             }
         """.trimIndent()
 
-        Assertions.assertEquals(
-            jsonNormalizer.parseToJsonElement(expected),
-            jsonNormalizer.parseToJsonElement(json)
-        )
+        assertJsonEquals(expectedJson, actualJson)
     }
 
     @Test
     fun multipleAccounts_test() {
-        val accountList = listOf<Account>(account, account2)
+        val accountList = listOf<Account>(account1, account2)
 
-        val json = Json.encodeToString(accountList)
+        val actualJson = Json.encodeToString(accountList)
         // val obj = Json.decodeFromString<Data>("""{"a":42, "b": "str"}""")
-        //println(json)
+        //println(actualJson)
 
-        val expected = """
+        val expectedJson = """
             [
               {
                 "id":"$accountId1",
@@ -65,24 +62,21 @@ internal class AccountTest {
             ]
         """.trimIndent()
 
-        Assertions.assertEquals(
-            jsonNormalizer.parseToJsonElement(expected),
-            jsonNormalizer.parseToJsonElement(json)
-        )
+        assertJsonEquals(expectedJson, actualJson)
     }
 
     @Test
     fun addPayments_to_single_account_test() {
         val payId: UUID = UUID.randomUUID()
         val payId2: UUID = UUID.randomUUID()
-        val date: LocalDate = LocalDate.now()
-        val payment: Payment = Payment(payId, "10.5".toBigDecimal(), date, "payment1")
-        val payment2: Payment = Payment(payId2, 20.toBigDecimal(), date, "payment2")
+        val date = LocalDate.of(2025, 12, 22)
+        val payment = Payment(payId, "10.5".toBigDecimal(), date, "payment1")
+        val payment2 = Payment(payId2, 20.toBigDecimal(), date, "payment2")
 
-        account.addPayment(payment)
-        account.addPayment(payment2)
+        account1.addPayment(payment)
+        account1.addPayment(payment2)
 
-        val expected = """
+        val expectedJson = """
             {
                 "id":"$accountId1",
                 "owner":"Tester",
@@ -90,25 +84,36 @@ internal class AccountTest {
                     {
                         "id":"$payId",
                         "amount":"10.5",
-                        "date": "2025-12-22",
+                        "date": "$date",
                         "description":"payment1"
                     },
                     {
                         "id":"$payId2",
                         "amount":"20",
-                        "date": "2025-12-22",
+                        "date": "$date",
                         "description":"payment2"
                     }
                  ]
             }
         """.trimIndent()
 
-        val json = Json.encodeToString(account)
-//        println(json)
+        val actualJson = Json.encodeToString(account1)
+//        println(actualJson)
 
+        assertJsonEquals(expectedJson, actualJson)
+    }
+
+    @Test
+    fun addPayment(){
+        val payment = Payment(UUID.randomUUID(), "10.5".toBigDecimal(), LocalDate.of(2025, 12, 22), "payment1")
+        account1.addPayment(payment)
+        Assertions.assertEquals(1, account1.payments().size)
+    }
+
+    private fun assertJsonEquals(expected: String, actual: String) {
         Assertions.assertEquals(
             jsonNormalizer.parseToJsonElement(expected),
-            jsonNormalizer.parseToJsonElement(json)
+            jsonNormalizer.parseToJsonElement(actual)
         )
     }
 }

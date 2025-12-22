@@ -1,6 +1,9 @@
 import java.util.UUID
 import kotlin.collections.mutableMapOf
 
+// Bei Programmstart alle Daten in den Speicher von Json laden
+// Arbeiten, ändern, hinzufügen etc. passiert nur im Speicher
+// Änderungen werden im Speicher vorgenommen und dann explizit persistiert
 class JsonAccountRepository : AccountRepository {
 
     private val accounts = mutableMapOf<UUID, Account>()
