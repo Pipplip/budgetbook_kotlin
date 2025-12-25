@@ -1,4 +1,5 @@
 import java.time.LocalDate
+import java.time.Month
 import java.util.*
 
 class ConsoleApp(
@@ -17,10 +18,12 @@ class ConsoleApp(
                 is AppState.MainMenu -> showMainMenu()
                 is AppState.AccountSelection -> showAccountSelection()
                 is AppState.AccountCreate -> showCreateAccount()
+                is AppState.AccountDelete -> showDeleteAccount()
                 is AppState.AccountMenu -> showAccountMenu(currentState.account)
                 is AppState.AccountMenuListPayments -> showAccountMenuListPayments(currentState.account)
                 is AppState.AccountMenuAddPayment -> showAccountMenuAddPayment(currentState.account)
                 is AppState.AccountMenuDeletePayment -> showAccountMenuDeletePayment(currentState.account)
+                is AppState.AccountMenuShowBalanceForMonth -> showAccountMenuShowBalanceForMonth(currentState.account)
                 is AppState.Exit -> AppState.Exit
             }
         }
@@ -33,13 +36,15 @@ class ConsoleApp(
         println("==== Hauptmenü ====")
         println("1 - Account erstellen")
         println("2 - Account auswählen")
-        println("3 - Beenden")
+        println("3 - Account löschen")
+        println("4 - Beenden")
         print("Auswahl: ")
 
         return when (readln().trim()) {
             "1" -> AppState.AccountCreate
             "2" -> AppState.AccountSelection
-            "3" -> AppState.Exit
+            "3" -> AppState.AccountDelete
+            "4" -> AppState.Exit
             else -> {
                 println("Ungültige Eingabe")
                 AppState.MainMenu
@@ -107,12 +112,30 @@ class ConsoleApp(
         }
     }
 
+    fun showDeleteAccount(): AppState {
+        println()
+        println("==== Account löschen ====")
+        println("ID: ")
+
+        val input = readln().trim()
+
+        if(input.isEmpty()){
+            println("Ungültige Eingabe")
+            return AppState.MainMenu
+        }else{
+            val account = service.deleteAccount(UUID.fromString(input))
+            println("Konto gelöscht")
+            return AppState.MainMenu
+        }
+    }
+
     fun showAccountMenu(account: Account): AppState {
         println()
         println("==== Account: ${account.owner} ====")
         println("1) Zahlungen anzeigen")
         println("2) Zahlung hinzufügen")
         println("3) Zahlung löschen")
+        println("4) Balance für einen bestimmten Monat anzeigen")
         println("0) Zurück")
         print("Auswahl: ")
 
@@ -128,6 +151,9 @@ class ConsoleApp(
             "3" -> {
                 println("Zahlung löschen für ${account.owner}")
                 AppState.AccountMenuDeletePayment(account)
+            }
+            "4" -> {
+                AppState.AccountMenuShowBalanceForMonth(account)
             }
             "0" -> AppState.MainMenu
             else -> {
@@ -218,15 +244,43 @@ class ConsoleApp(
         }
         return AppState.AccountMenu(account)
     }
+
+    fun showAccountMenuShowBalanceForMonth(account: Account) : AppState {
+        println()
+        println("==== Account: ${account.owner} ====")
+        println("Balance für einen bestimmten Monat anzeigen (Monat Jahr z.B. 2 2025)")
+        print("Eingabe: ")
+        val input = readln().trim()
+        if(input.isEmpty()){
+            println("Ungültige Eingabe")
+            return AppState.AccountMenu(account)
+        }else{
+            val parts = input.split(" ", limit = 2)
+            if (parts.size != 2) {
+                println("Ungültige Eingabe")
+                return AppState.AccountMenu(account)
+            }
+
+            val month = parts[0]
+            val year = parts[1]
+            val balance = service.getBalanceForSpecificMonthYear(account.id, year.toInt(), Month.of(month.toInt()))
+
+            println("Balance: $balance")
+
+            return AppState.AccountMenu(account)
+        }
+    }
 }
 
 sealed class AppState {
     object MainMenu : AppState() // Hauptmenu
     object AccountCreate : AppState() // Account erstellen
+    object AccountDelete : AppState() // Account erstellen
     object AccountSelection : AppState() // Account auswählen
     data class AccountMenu(val account: Account) : AppState() // Menu wenn Account gewählt ist
     object Exit : AppState()
     data class AccountMenuListPayments(val account: Account): AppState()
     data class AccountMenuAddPayment(val account: Account): AppState()
     data class AccountMenuDeletePayment(val account: Account): AppState()
+    data class AccountMenuShowBalanceForMonth(val account: Account): AppState()
 }

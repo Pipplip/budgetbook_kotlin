@@ -46,7 +46,7 @@ class AccountService(
         repository.findById(accountId)?.balance()
             ?: throw AccountNotFoundException(accountId)
 
-    fun getBalanceForSpecificMonthYear(accountId: UUID, year: Int, month: Month) =
+    fun getBalanceForSpecificMonthYear(accountId: UUID, year: Int, month: Month) : BigDecimal  =
         repository.findById(accountId)?.getBalanceForSpecificMonthYear(year, month)
             ?: throw AccountNotFoundException(accountId)
 
