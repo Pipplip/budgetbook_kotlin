@@ -4,6 +4,8 @@ fun main() {
     val service = AccountService(repository)
     val app = ConsoleApp(service)
 
+    service.getAndInitAllAccounts()
+
     println("==== Willkommen zum BudgetBook CLI Tool ====")
     app.run()
 }

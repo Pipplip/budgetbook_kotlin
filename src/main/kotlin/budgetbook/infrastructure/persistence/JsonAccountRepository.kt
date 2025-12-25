@@ -12,6 +12,10 @@ class JsonAccountRepository : AccountRepository {
         //TODO("Not yet implemented")
     }
 
+    override fun saveAll() {
+        //TODO("Not yet implemented")
+    }
+
     override fun findById(id: UUID): Account? {
         //TODO("Not yet implemented")
         return null
@@ -24,6 +28,10 @@ class JsonAccountRepository : AccountRepository {
     override fun getAllAccounts(): MutableMap<UUID, Account> {
         //TODO("Not yet implemented")
         return accounts
+    }
+
+    override fun getAccountById(id: UUID): Account? {
+        return accounts[id]
     }
 
 }

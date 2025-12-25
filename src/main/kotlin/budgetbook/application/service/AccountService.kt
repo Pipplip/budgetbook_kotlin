@@ -1,3 +1,5 @@
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.Month
 import java.util.*
 import kotlin.collections.mutableMapOf
@@ -16,16 +18,20 @@ class AccountService(
         repository.delete(accountId)
     }
 
-    fun getAllAccounts(): MutableMap<UUID, Account>{
+    fun getAndInitAllAccounts(): MutableMap<UUID, Account>{
         return repository.getAllAccounts()
     }
 
-    fun addPayment(accountId: UUID, payment: Payment) {
+    fun addPayment(accountId: UUID, paymentAmount: BigDecimal, description: String, date: LocalDate = LocalDate.now()): Payment {
         val account = repository.findById(accountId)
             ?: throw AccountNotFoundException(accountId)
 
+        val paymentId = UUID.randomUUID()
+        val payment = Payment(paymentId, paymentAmount, date, description)
         account.addPayment(payment)
         repository.save(account)
+
+        return payment
     }
 
     fun removePayment(accountId: UUID, paymentId: UUID) {
@@ -43,4 +49,11 @@ class AccountService(
     fun getBalanceForSpecificMonthYear(accountId: UUID, year: Int, month: Month) =
         repository.findById(accountId)?.getBalanceForSpecificMonthYear(year, month)
             ?: throw AccountNotFoundException(accountId)
+
+    fun hasPayments(id: UUID): Boolean {
+        val account = repository.getAccountById(id)
+        return account != null && account.payments().isNotEmpty()
+    }
+
+
 }

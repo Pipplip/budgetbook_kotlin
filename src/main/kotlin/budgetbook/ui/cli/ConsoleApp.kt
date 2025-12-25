@@ -1,5 +1,5 @@
-import java.math.BigDecimal
-import java.util.UUID
+import java.time.LocalDate
+import java.util.*
 
 class ConsoleApp(
     private val service: AccountService
@@ -18,22 +18,14 @@ class ConsoleApp(
                 is AppState.AccountSelection -> showAccountSelection()
                 is AppState.AccountCreate -> showCreateAccount()
                 is AppState.AccountMenu -> showAccountMenu(currentState.account)
+                is AppState.AccountMenuListPayments -> showAccountMenuListPayments(currentState.account)
+                is AppState.AccountMenuAddPayment -> showAccountMenuAddPayment(currentState.account)
+                is AppState.AccountMenuDeletePayment -> showAccountMenuDeletePayment(currentState.account)
                 is AppState.Exit -> AppState.Exit
             }
         }
 
         println("Programm beendet.")
-
-//        val account = service.createAccount("Max Mustermann")
-//        println("Konto erstellt: ${account.id}")
-//
-//        val payment = Payment(
-//            amount = BigDecimal("100.00"),
-//            description = "Gehalt"
-//        )
-//
-//        service.addPayment(account.id, payment)
-//        println("Saldo: ${service.getBalance(account.id)} €")
     }
 
     fun showMainMenu(): AppState {
@@ -59,7 +51,7 @@ class ConsoleApp(
         println()
         println("==== Account auswählen ====")
 
-        val accountsMap: MutableMap<UUID, Account> = service.getAllAccounts()
+        val accountsMap: MutableMap<UUID, Account> = service.getAndInitAllAccounts()
 
         val accountToList = accountsMap.values.toList()
 
@@ -67,13 +59,6 @@ class ConsoleApp(
             println("${index + 1} - ${account.owner} id: ${account.id}")
         }
 
-//        accountsMap.entries.forEachIndexed { index, entry ->
-//            println("${index + 1} - ${entry.value.owner} id: ${entry.value.id}")
-//        }
-
-//        accountsMap.forEach { (id, account) ->
-//            println("$id - ${account.owner}")
-//        }
         println("0 - Zurück")
         print("Auswahl: ")
 
@@ -102,25 +87,7 @@ class ConsoleApp(
             }
         }
 
-    return AppState.AccountMenu(account)
-
-//        // UUID parsen
-//        val uuid = try {
-//            val selectedAccount = accountToList.get(input.toInt() - 1)
-//            UUID.fromString(selectedAccount.id.toString())
-//        } catch (e: IllegalArgumentException) {
-//            println("Ungültige UUID")
-//            return AppState.AccountSelection
-//        }
-//
-//        // Account finden
-//        val account = accountsMap[uuid]
-//            ?: run {
-//                println("Account nicht gefunden")
-//                return AppState.AccountSelection
-//            }
-//
-//        return AppState.AccountMenu(account)
+        return AppState.AccountMenu(account)
     }
 
     fun showCreateAccount(): AppState {
@@ -145,17 +112,22 @@ class ConsoleApp(
         println("==== Account: ${account.owner} ====")
         println("1) Zahlungen anzeigen")
         println("2) Zahlung hinzufügen")
+        println("3) Zahlung löschen")
         println("0) Zurück")
         print("Auswahl: ")
 
         return when (readln().trim()) {
             "1" -> {
                 println("Zahlungen anzeigen für ${account.owner}")
-                AppState.AccountMenu(account)
+                AppState.AccountMenuListPayments(account)
             }
             "2" -> {
                 println("Zahlung hinzufügen für ${account.owner}")
-                AppState.AccountMenu(account)
+                AppState.AccountMenuAddPayment(account)
+            }
+            "3" -> {
+                println("Zahlung löschen für ${account.owner}")
+                AppState.AccountMenuDeletePayment(account)
             }
             "0" -> AppState.MainMenu
             else -> {
@@ -163,6 +135,88 @@ class ConsoleApp(
                 AppState.AccountMenu(account)
             }
         }
+    }
+
+    fun showAccountMenuListPayments(account: Account) : AppState{
+        if(!service.hasPayments(account.id)){
+            println("Keine Zahlungen vorhanden!")
+            return AppState.AccountMenu(account)
+        }
+//        for (payment in account.payments()){
+//            println("${payment.amount} - ${payment.description} Datum: ${payment.date} - id: ${payment.id}")
+//        }
+
+        println(
+            String.format(
+                "%-10s | %-30s | %-12s | %-5s",
+                "Betrag", "Beschreibung", "Datum", "ID"
+            )
+        )
+        println("-".repeat(65))
+
+        for (payment in account.payments()) {
+            println(
+                String.format(
+                    "%-10s | %-30s | %-12s | %-5s",
+                    payment.amount,
+                    payment.description,
+                    payment.date,
+                    payment.id
+                )
+            )
+        }
+        return AppState.AccountMenu(account)
+    }
+
+    fun showAccountMenuAddPayment(account: Account) : AppState {
+        println()
+        println("==== Account: ${account.owner} ====")
+        println("Zahlung eingeben (Betrag + Beschreibung)")
+        print("Eingabe: ")
+
+        val input = readln().trim()
+
+        val parts = input.split(" ", limit = 2)
+        if (parts.size != 2) {
+            println("Ungültige Eingabe")
+            return AppState.AccountMenu(account)
+        }
+
+        val amountString = parts[0]
+        val desc = parts[1]
+
+        val amount = amountString.toBigDecimalOrNull()
+        if (amount == null) {
+            println("Ungültiger Betrag")
+            return AppState.AccountMenu(account)
+        }
+
+        val payment = service.addPayment(account.id, amount, desc)
+        println("Zahlung hinzugefügt: $amount - $desc - ${payment.id}")
+        return AppState.AccountMenu(account)
+    }
+
+    fun showAccountMenuDeletePayment(account: Account) : AppState {
+        println()
+        println("==== Account: ${account.owner} ====")
+        println("Zahlung löschen (id)")
+        print("Eingabe: ")
+
+        val input = readln().trim()
+        if(input.isEmpty()){
+            println("Ungültige Eingabe")
+            return AppState.AccountMenu(account)
+        }else {
+            val uuid = try {
+                UUID.fromString(input)
+            } catch (e: IllegalArgumentException) {
+                println("Ungültige UUID: ${e.message}")
+                return AppState.AccountMenu(account)
+            }
+            service.removePayment(account.id, uuid)
+            println("Zahlung gelöscht: $uuid")
+        }
+        return AppState.AccountMenu(account)
     }
 }
 
@@ -172,4 +226,7 @@ sealed class AppState {
     object AccountSelection : AppState() // Account auswählen
     data class AccountMenu(val account: Account) : AppState() // Menu wenn Account gewählt ist
     object Exit : AppState()
+    data class AccountMenuListPayments(val account: Account): AppState()
+    data class AccountMenuAddPayment(val account: Account): AppState()
+    data class AccountMenuDeletePayment(val account: Account): AppState()
 }
