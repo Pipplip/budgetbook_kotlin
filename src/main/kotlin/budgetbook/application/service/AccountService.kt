@@ -14,20 +14,17 @@ class AccountService(
         return account
     }
 
-    fun deleteAccount(accountId: UUID) {
+    fun deleteAccount(accountId: UUID): Boolean =
         repository.delete(accountId)
-    }
 
-    fun getAndInitAllAccounts(): MutableMap<UUID, Account>{
-        return repository.getAllAccounts()
-    }
+    fun getAllAccounts(): List<Account> =
+        repository.findAll()
 
-    fun addPayment(accountId: UUID, paymentAmount: BigDecimal, description: String, date: LocalDate = LocalDate.now()): Payment {
+    fun addPayment(accountId: UUID, amount: BigDecimal, description: String, date: LocalDate = LocalDate.now()): Payment {
         val account = repository.findById(accountId)
             ?: throw AccountNotFoundException(accountId)
 
-        val paymentId = UUID.randomUUID()
-        val payment = Payment(paymentId, paymentAmount, date, description)
+        val payment = Payment(amount = amount, date = date, description = description)
         account.addPayment(payment)
         repository.save(account)
 
@@ -38,7 +35,10 @@ class AccountService(
         val account = repository.findById(accountId)
             ?: throw AccountNotFoundException(accountId)
 
-        account.removePayment(paymentId)
+        if (!account.removePayment(paymentId)) {
+            throw PaymentNotFoundException(paymentId)
+        }
+
         repository.save(account)
     }
 
@@ -46,14 +46,19 @@ class AccountService(
         repository.findById(accountId)?.balance()
             ?: throw AccountNotFoundException(accountId)
 
-    fun getBalanceForSpecificMonthYear(accountId: UUID, year: Int, month: Month) : BigDecimal  =
-        repository.findById(accountId)?.getBalanceForSpecificMonthYear(year, month)
+    fun getBalanceFor(accountId: UUID, year: Int, month: Month) : BigDecimal  =
+        repository.findById(accountId)?.balanceFor(year, month)
             ?: throw AccountNotFoundException(accountId)
 
     fun hasPayments(id: UUID): Boolean {
-        val account = repository.getAccountById(id)
-        return account != null && account.payments().isNotEmpty()
+        val account = repository.findById(id)
+        return account != null && account.getPayments().isNotEmpty()
     }
 
-
+    fun saveAll(): Boolean  {
+        if (repository is PersistableRepository) {
+            return repository.persistAllToFile()
+        }
+        return true
+    }
 }

@@ -15,18 +15,18 @@ class Account(
         payments.add(payment)
     }
 
-    fun removePayment(paymentId: UUID) {
-        payments.removeIf { it.id == paymentId }
+    fun removePayment(paymentId: UUID): Boolean {
+        return payments.removeIf { it.id == paymentId }
     }
 
     fun balance(): BigDecimal =
         payments.fold(BigDecimal.ZERO) { acc, p -> acc + p.amount }
 
-    fun getBalanceForSpecificMonthYear(year: Int, month: Month) : BigDecimal =
+    fun balanceFor(year: Int, month: Month) : BigDecimal =
         payments
             .filter { it.date.year == year && it.date.month == month }
             .sumOf { it.amount }
 
-    fun payments(): List<Payment> =
+    fun getPayments(): List<Payment> =
         payments.toList()
 }

@@ -10,21 +10,14 @@ class InMemoryAccountRepository : AccountRepository {
         accounts[account.id] = account
     }
 
-    override fun saveAll() {
-    }
-
     override fun findById(id: UUID): Account? =
         accounts[id]
 
-    override fun delete(id: UUID) {
-        accounts.remove(id)
+    override fun delete(id: UUID): Boolean {
+        accounts.remove(id) != null
+        return true // TODO
     }
 
-    override fun getAllAccounts(): MutableMap<UUID, Account> {
-        return accounts
-    }
-
-    override fun getAccountById(id: UUID): Account? {
-        return accounts[id]
-    }
+    override fun findAll(): List<Account> =
+        accounts.values.toList()
 }
