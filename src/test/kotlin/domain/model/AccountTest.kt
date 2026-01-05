@@ -107,7 +107,7 @@ internal class AccountTest {
     fun addPayment(){
         val payment = Payment(UUID.randomUUID(), "10.5".toBigDecimal(), LocalDate.of(2025, 12, 22), "payment1")
         account1.addPayment(payment)
-        Assertions.assertEquals(1, account1.payments().size)
+        Assertions.assertEquals(1, account1.getPayments().size)
     }
 
     private fun assertJsonEquals(expected: String, actual: String) {

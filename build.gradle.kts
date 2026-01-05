@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("io.mockk:mockk:1.13.5")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 }
 
