@@ -1,5 +1,4 @@
-
 import java.util.UUID
 
 class AccountNotFoundException(id: UUID) :
-    RuntimeException("Konto mit ID $id wurde nicht gefunden")
+    RuntimeException("Account with ID $id not found")

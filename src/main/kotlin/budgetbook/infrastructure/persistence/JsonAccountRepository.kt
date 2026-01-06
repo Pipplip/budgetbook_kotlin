@@ -7,7 +7,6 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.collections.mutableMapOf
 
-
 @Serializable
 data class AccountWrapper(
     val accounts: List<Account>
